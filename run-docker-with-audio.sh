@@ -96,4 +96,3 @@ else
     echo -e "${RED}❌ Błąd podczas uruchamiania kontenera${NC}"
     exit 1
 fi
-

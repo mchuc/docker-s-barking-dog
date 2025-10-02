@@ -145,14 +145,14 @@ docker run -d -p 8000:8000 barking-dog-api:latest-ios
 
 ## 🔧 Konfiguracja
 
-### 🔊 `/warn` (POST)
+### 🔊 `/warn` (GET)
 Główny endpoint ostrzegawczy:
 - **Pierwsze wywołanie**: Losuje i odtwarza dźwięk → `status: "PLAYING"`
 - **Podczas odtwarzania**: Zwraca `status: "BUSY"`
 - **Po zakończeniu**: Ponownie dostępny do losowania
 
 ```bash
-curl -X POST http://localhost:8000/warn
+curl -X GET http://localhost:8000/warn
 ```
 
 ## Optymalizator dźwięku

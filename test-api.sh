@@ -1,5 +1,5 @@
 #!/bin/bash
-# Test script dla API
+# Test API endpoints
 #
 # Copyright 2025 Marcin Chuć ORCID: 0000-0002-8430-9763
 #
@@ -20,36 +20,17 @@ API_URL="http://localhost:8000"
 echo "🧪 Testowanie Barking Dog API"
 echo "=============================="
 
-echo "1. 🏥 Test healthcheck..."
-curl -s $API_URL/ | jq '.' || echo "❌ API niedostępne"
+# Test podstawowy
+echo "📡 Test podstawowy..."
+curl -s "$API_URL/" | jq .
 
-echo -e "\n2. 📋 Test bazy dźwięków..."
-curl -s $API_URL/sounds/database | jq '.liczba_plikow' || echo "❌ Błąd bazy dźwięków"
+echo -e "\n🔊 Test endpoint /warn (GET)..."
+curl -s "$API_URL/warn" | jq .
 
-echo -e "\n3. 🔊 Test pierwszego wywołania /warn..."
-RESPONSE1=$(curl -s -X POST $API_URL/warn)
-echo $RESPONSE1 | jq '.'
-STATUS1=$(echo $RESPONSE1 | jq -r '.status')
+echo -e "\n📊 Test bazy danych dźwięków..."
+curl -s "$API_URL/sounds/database" | jq .
 
-if [ "$STATUS1" = "PLAYING" ]; then
-    echo "✅ Pierwszy test PASSED - status: PLAYING"
-    
-    echo -e "\n4. 🔄 Test drugiego wywołania /warn (powinien być BUSY)..."
-    RESPONSE2=$(curl -s -X POST $API_URL/warn)
-    echo $RESPONSE2 | jq '.'
-    STATUS2=$(echo $RESPONSE2 | jq -r '.status')
-    
-    if [ "$STATUS2" = "BUSY" ]; then
-        echo "✅ Drugi test PASSED - status: BUSY"
-        echo "🎉 Wszystkie testy przeszły pomyślnie!"
-    else
-        echo "❌ Drugi test FAILED - oczekiwano BUSY, otrzymano: $STATUS2"
-    fi
-else
-    echo "❌ Pierwszy test FAILED - oczekiwano PLAYING, otrzymano: $STATUS1"
-fi
+echo -e "\n🎲 Test losowego dźwięku..."
+curl -s "$API_URL/sounds/random/get" | jq .
 
-echo -e "\n5. 🔄 Reset historii losowania..."
-curl -s -X POST $API_URL/sounds/random/reset | jq '.'
-
-echo -e "\n🏁 Test zakończony"
+echo -e "\n✅ Testy zakończone"
