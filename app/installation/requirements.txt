@@ -1,0 +1,7 @@
+#brew install rubberband   # macOS
+#sudo apt install rubberband-cli librubberband-dev   # Ubuntu/Debian
+#https://breakfastquay.com/rubberband/ for windows
+numpy
+librosa
+soundfile
+pyrubberband
