@@ -23,19 +23,21 @@ services:
     volumes:
       # Montuj katalog z dźwiękami (opcjonalne)
       - ./app/sounds:/app/app/sounds
-      # Montuj konfigurację audio dla Dockera
-      - /etc/pulse:/etc/pulse:ro
+      # Audio dla Linux
+      - /run/user/1000/pulse:/run/user/1000/pulse:ro
       - /tmp/.X11-unix:/tmp/.X11-unix:ro
     environment:
       - DISPLAY=${DISPLAY:-:0}
-      - PULSE_RUNTIME_PATH=/var/run/pulse
-      - PULSE_RUNTIME_PATH=/run/user/1000/pulse
-    # Dla audio w Docker (opcjonalne, zależy od hosta)
+      - PULSE_SERVER=unix:/run/user/1000/pulse/native
+      - SDL_AUDIODRIVER=pulse,alsa,dummy
+      # Fallback audio dla Docker Desktop (macOS/Windows)
+      - PYGAME_HIDE_SUPPORT_PROMPT=1
+    # Audio devices (Linux)
     devices:
       - /dev/snd:/dev/snd
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

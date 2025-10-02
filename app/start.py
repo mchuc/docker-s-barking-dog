@@ -197,29 +197,61 @@ def play_audio_file(file_path: str, duration: float):
         # Próba 2: pygame (multiplatformowy)
         if PYGAME_AVAILABLE and not audio_played:
             try:
+                # Konfiguracja pygame dla różnych środowisk
+                os.environ.setdefault('SDL_AUDIODRIVER', 'pulse,alsa,dummy')
+
+                # Inicjalizacja pygame z fallback do dummy
+                pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=512)
                 pygame.mixer.init()
-                pygame.mixer.music.load(str(file_path))
-                pygame.mixer.music.play()
-                audio_played = True
-                print("Audio: używam pygame (multiplatformowy)")
+
+                # Sprawdź czy audio rzeczywiście działa
+                if pygame.mixer.get_init():
+                    pygame.mixer.music.load(str(file_path))
+                    pygame.mixer.music.play()
+                    audio_played = True
+                    audio_driver = os.environ.get('SDL_AUDIODRIVER', 'unknown')
+                    print(f"Audio: używam pygame ({audio_driver})")
+                else:
+                    print("pygame: audio nie został zainicjalizowany")
+
             except Exception as e:
                 print(f"pygame nie zadziałał: {e}")
-        
+                # Próba z wymuszonym dummy driver
+                try:
+                    os.environ['SDL_AUDIODRIVER'] = 'dummy'
+                    pygame.mixer.quit()
+                    pygame.mixer.init()
+                    if pygame.mixer.get_init():
+                        pygame.mixer.music.load(str(file_path))
+                        pygame.mixer.music.play()
+                        audio_played = True
+                        print("Audio: używam pygame (dummy - symulacja)")
+                except Exception as e2:
+                    print(f"pygame dummy również nie zadziałał: {e2}")
+
         # Próba 3: systemowe odtwarzacze (fallback)
         if SUBPROCESS_AVAILABLE and not audio_played:
             try:
                 if sys.platform.startswith('win'):
                     subprocess.run(['start', '', str(file_path)], shell=True, check=False)
+                    audio_played = True
+                    print("Audio: używam systemowy (Windows)")
                 elif sys.platform.startswith('darwin'):
                     subprocess.run(['afplay', str(file_path)], check=False)
+                    audio_played = True
+                    print("Audio: używam afplay (macOS)")
                 elif sys.platform.startswith('linux'):
                     # Próbuj różne odtwarzacze Linux
                     for player in ['aplay', 'paplay', 'mpg123', 'ffplay']:
                         try:
-                            subprocess.run([player, str(file_path)], check=False, timeout=1)
-                            audio_played = True
-                            print(f"Audio: używam {player} (Linux)")
-                            break
+                            result = subprocess.run([player, str(file_path)],
+                                                   capture_output=True,
+                                                   timeout=1,
+                                                   check=False)
+                            if result.returncode == 0:
+                                audio_played = True
+                                print(f"Audio: używam {player} (Linux)")
+                                break
                         except (subprocess.TimeoutExpired, FileNotFoundError):
                             continue
                 else:
@@ -230,7 +262,8 @@ def play_audio_file(file_path: str, duration: float):
         # Fallback: tylko symulacja
         if not audio_played:
             print("Audio: brak dostępnych odtwarzaczy - tylko symulacja")
-        
+            print("       (aplikacja działa normalnie, ale bez fizycznego dźwięku)")
+
         # Czekaj przez czas trwania pliku
         time.sleep(duration)
         

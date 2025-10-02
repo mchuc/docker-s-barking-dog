@@ -4,10 +4,73 @@ API do odtwarzania losowych dźwięków szczekania psów z kontrolą współbie�
 
 (C)2025  Marcin Chuć ORCID: 0000-0002-8430-9763
 
+## 🔊 Audio w Docker
+
+### Problem z kartą dźwiękową
+Docker domyślnie nie ma dostępu do karty dźwiękowej hosta. Oto rozwiązania:
+
+#### Opcja 1: Uruchomienie z audio (zalecane)
+```bash
+# Linux/macOS z konfiguracją audio
+chmod +x run-docker-with-audio.sh
+./run-docker-with-audio.sh
+
+# Windows
+run-docker-with-audio.bat
+```
+
+#### Opcja 2: Ręczna konfiguracja
+
+**Linux (PulseAudio):**
+```bash
+docker run -d -p 8000:8000 \
+  -v /run/user/$(id -u)/pulse:/run/user/1000/pulse:ro \
+  --device /dev/snd:/dev/snd \
+  -e PULSE_SERVER=unix:/run/user/1000/pulse/native \
+  -e SDL_AUDIODRIVER=pulse,alsa,dummy \
+  barking-dog-api
+```
+
+**macOS/iOS (Docker Desktop - dummy audio):**
+```bash
+docker run -d -p 8000:8000 \
+  -e SDL_AUDIODRIVER=dummy \
+  -e PYGAME_HIDE_SUPPORT_PROMPT=1 \
+  barking-dog-api
+```
+
+**Windows (Docker Desktop):**
+```powershell
+docker run -d -p 8000:8000 `
+  -e SDL_AUDIODRIVER=dummy `
+  -e PYGAME_HIDE_SUPPORT_PROMPT=1 `
+  barking-dog-api
+```
+
+### Tryby audio
+
+1. **Pełne audio** (Linux z PulseAudio) - rzeczywisty dźwięk
+2. **ALSA** (Linux bez PulseAudio) - systemowy dźwięk
+3. **Dummy** (macOS/iOS/Windows) - symulacja bez dźwięku
+
+### Sprawdzenie audio
+```bash
+# Test endpoint
+curl -X GET http://localhost:8000/warn
+
+# Sprawdź logi audio
+docker logs barking-dog-api | grep -i audio
+```
+
 ## 🚀 Szybkie uruchomienie
 
-### Opcja 1: Docker Compose (Zalecane)
+### Opcja 1: Z audio (nowy skrypt)
+```bash
+# Automatyczna konfiguracja audio dla Twojej platformy
+./run-docker-with-audio.sh
+```
 
+### Opcja 2: Docker Compose (podstawowy)
 ```bash
 # Linux/macOS
 ./run-docker.sh
@@ -16,7 +79,7 @@ API do odtwarzania losowych dźwięków szczekania psów z kontrolą współbie�
 run-docker.bat
 ```
 
-### Opcja 2: Obrazy gotowe do przenoszenia
+### Opcja 3: Obrazy gotowe do przenoszenia
 
 ```bash
 # Utwórz obrazy dla różnych platform
@@ -28,7 +91,7 @@ run-docker.bat
 # Pliki: barkingDog-img-PLATFORMA.tar.gz
 ```
 
-### Opcja 3: Manualnie
+### Opcja 4: Manualnie
 
 ```bash
 # Zbuduj obraz

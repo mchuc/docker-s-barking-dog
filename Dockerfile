@@ -34,9 +34,11 @@ RUN apt-get update && apt-get install -y \
     gcc \
     pkg-config \
     libasound2-dev \
-    # Optional: for pygame
+    # SDL dependencies for pygame
     libsdl2-dev \
     libsdl2-mixer-2.0-0 \
+    # Additional audio tools
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Utwórz użytkownika non-root dla bezpieczeństwa
@@ -54,6 +56,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Instaluj dodatkowe zależności audio dla Docker
 RUN pip install --no-cache-dir pygame
 
+# Utwórz konfigurację audio dla dummy driver
+RUN mkdir -p /home/app/.config && \
+    echo "export SDL_AUDIODRIVER=pulse,alsa,dummy" >> /home/app/.bashrc && \
+    echo "export PYGAME_HIDE_SUPPORT_PROMPT=1" >> /home/app/.bashrc
+
 # Skopiuj kod aplikacji
 COPY app/ ./app/
 
@@ -62,6 +69,12 @@ RUN chown -R app:app /app
 
 # Przełącz na użytkownika non-root
 USER app
+
+# Ustaw zmienne środowiskowe audio
+ENV SDL_AUDIODRIVER=pulse,alsa,dummy \
+    PYGAME_HIDE_SUPPORT_PROMPT=1 \
+    ALSA_PCM_CARD=0 \
+    ALSA_PCM_DEVICE=0
 
 # Eksponuj port
 EXPOSE 8000
