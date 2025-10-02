@@ -182,10 +182,9 @@ def play_audio_file(file_path: str, duration: float):
         
         print(f"Rozpoczynam odtwarzanie: {playback_state.filename} (długość: {duration:.2f}s)")
         
-        # Wykryj platformę
-        is_ios_docker = os.environ.get('PLATFORM_HINT') == 'ios' or \
-                       (sys.platform.startswith('linux') and
-                        os.environ.get('SDL_AUDIODRIVER', '').startswith('dummy'))
+        # Wykryj platformę (lepsza detekcja kontenera)
+        is_container = os.path.exists('/.dockerenv') or os.environ.get('CONTAINER') == 'docker'
+        is_ios_docker = os.environ.get('PLATFORM_HINT') == 'ios' or (is_container and sys.platform.startswith('linux'))
 
         # Wybór metody odtwarzania w zależności od dostępności
         audio_played = False
@@ -202,30 +201,39 @@ def play_audio_file(file_path: str, duration: float):
         # Próba 2: pygame (multiplatformowy)
         if PYGAME_AVAILABLE and not audio_played:
             try:
-                # Specjalna konfiguracja dla iOS/Docker
+                forced_dummy = False
+
                 if is_ios_docker:
                     os.environ['SDL_AUDIODRIVER'] = 'dummy'
+                    forced_dummy = True
                     print("Audio: iOS/Docker wykryty - używam trybu symulacji")
                 else:
-                    os.environ.setdefault('SDL_AUDIODRIVER', 'pulse,alsa,dummy')
+                    # Przy uruchomieniu natywnym nie wymuszaj sterownika audio
+                    if os.environ.get('SDL_AUDIODRIVER', '') == 'dummy':
+                        # Usuń wymuszenie dummy, jeśli zostało odziedziczone ze środowiska
+                        del os.environ['SDL_AUDIODRIVER']
 
-                # Inicjalizacja pygame z fallback do dummy
                 pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=512)
-                pygame.mixer.init()
+                try:
+                    pygame.mixer.init()
+                except Exception as e_init:
+                    # Gdy inicjalizacja nie powiedzie się, wymuś dummy jako awaryjny fallback
+                    print(f"pygame init nie powiodło się ({e_init}), wymuszam tryb dummy")
+                    pygame.mixer.quit()
+                    os.environ['SDL_AUDIODRIVER'] = 'dummy'
+                    forced_dummy = True
+                    pygame.mixer.init()
 
-                # Sprawdź czy audio rzeczywiście działa
                 if pygame.mixer.get_init():
                     pygame.mixer.music.load(str(file_path))
                     pygame.mixer.music.play()
                     audio_played = True
-                    audio_driver = os.environ.get('SDL_AUDIODRIVER', 'unknown')
 
-                    if is_ios_docker or 'dummy' in audio_driver:
+                    if forced_dummy:
                         print("Audio: używam pygame (dummy - SYMULACJA bez dźwięku)")
-                        print("       Na iOS/Docker fizyczny dźwięk nie jest dostępny")
                         print("       Aplikacja działa normalnie, ale bez audio output")
                     else:
-                        print(f"Audio: używam pygame ({audio_driver})")
+                        print("Audio: używam pygame")
                 else:
                     print("pygame: audio nie został zainicjalizowany")
 

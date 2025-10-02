@@ -163,9 +163,13 @@ curl -X GET http://localhost:8000/warn
 
 # Sprawdź typ audio w logach
 docker logs barking-dog-api | grep -E "(Audio|SYMULACJA|🔇)"
-
-# Dla iOS - oczekuj komunikatów o symulacji
 ```
+
+## ❓ FAQ: audio na iOS
+
+- Czy w iOS mam dźwięk?
+  - Tak, przy uruchomieniu NATYWNYM (FastAPI/uvicorn): dźwięk działa normalnie.
+  - Nie (symulacja), w Docker Desktop na iOS/macOS: to ograniczenie platformy. Użyj opcji natywnej: `python3 run-uvicorn-debug.py`.
 
 ## 🔧 Lokalne uruchomienie (bez Docker)
 
@@ -328,3 +332,27 @@ Szczegóły w pliku [LICENSE](LICENSE)
 ## 👨‍💻 Autor
 
 (C)2025 Marcin Chuć ORCID: 0000-0002-8430-9763
+
+## 🔧 Troubleshooting audio (uruchomienie natywne)
+
+Jeśli przy uruchomieniu natywnym widzisz komunikat:
+„Audio: używam pygame (dummy - SYMULACJA bez dźwięku)”, wykonaj:
+
+```bash
+# 1) Sprawdź czy środowisko nie wymusza trybu dummy
+echo "SDL_AUDIODRIVER=$SDL_AUDIODRIVER"
+
+# 2) Usuń wymuszenie (jeśli ustawione na 'dummy')
+unset SDL_AUDIODRIVER
+
+# 3) Przetestuj systemowy odtwarzacz (macOS):
+afplay app/sounds/optimized/<jakiś_plik>.wav
+
+# 4) Uruchom ponownie serwer:
+python3 run-uvicorn-debug.py
+```
+
+Uwagi:
+- Na macOS natywnie pygame użyje CoreAudio – nie ustawiaj SDL_AUDIODRIVER.
+- Tryb „dummy” powinien włączać się tylko w kontenerze (iOS/Docker) lub jako awaryjny fallback, gdy inicjalizacja audio się nie powiedzie.
+- Jeśli nadal brak dźwięku, upewnij się, że system nie jest wyciszony i że plik audio odtwarza się przez `afplay`.

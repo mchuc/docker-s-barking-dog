@@ -70,14 +70,12 @@ EXPOSE 8000
 RUN mkdir -p /app/app/sounds/optimized
 
 # Ustaw zmienne środowiskowe audio
-ENV SDL_AUDIODRIVER=pulse,alsa,dummy \
-    PYGAME_HIDE_SUPPORT_PROMPT=1 \
+ENV PYGAME_HIDE_SUPPORT_PROMPT=1 \
     ALSA_PCM_CARD=0 \
     ALSA_PCM_DEVICE=0
 
 # Utwórz konfigurację audio dla dummy driver
 RUN mkdir -p /home/app/.config && \
-    echo "export SDL_AUDIODRIVER=pulse,alsa,dummy" >> /home/app/.bashrc && \
     echo "export PYGAME_HIDE_SUPPORT_PROMPT=1" >> /home/app/.bashrc
 
 # Healthcheck

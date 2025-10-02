@@ -29,7 +29,6 @@ services:
     environment:
       - DISPLAY=${DISPLAY:-:0}
       - PULSE_SERVER=unix:/run/user/1000/pulse/native
-      - SDL_AUDIODRIVER=pulse,alsa,dummy
       # Fallback audio dla Docker Desktop (macOS/Windows/iOS)
       - PYGAME_HIDE_SUPPORT_PROMPT=1
       - PLATFORM_HINT=${PLATFORM_HINT:-auto}

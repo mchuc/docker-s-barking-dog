@@ -224,7 +224,7 @@ docker run -d \
 if [ $? -eq 0 ]; then
     echo "✅ Kontener uruchomiony pomyślnie!"
     echo "📡 API dostępne na: http://localhost:8000"
-    echo "🔊 Test: curl -X POST http://localhost:8000/warn"
+    echo "🔊 Test: curl -X GET http://localhost:8000/warn"
     echo "📋 Logi: docker logs -f barking-dog-container"
 else
     echo "❌ Błąd podczas uruchamiania kontenera"
@@ -277,7 +277,7 @@ docker run -d -p 8000:8000 barking-dog-api:latest-linux-amd64
 ### iOS/Apple Silicon:
 ```bash
 # Importuj obraz ARM
-./import-linux-mac.sh barkingDog-img-ios.tar.gz
+./import-linux-mac.sh barkingDog-img-ios-arm64.tar.gz
 
 # Uruchom
 ./quick-start.sh
@@ -293,7 +293,7 @@ gunzip -c barkingDog-img-PLATFORMA.tar.gz | docker load
 docker run -d -p 8000:8000 barking-dog-api:latest-PLATFORMA
 
 # Test
-curl -X POST http://localhost:8000/warn
+curl -X GET http://localhost:8000/warn
 ```
 
 ## 📁 Struktura
