@@ -87,6 +87,32 @@ Główny endpoint ostrzegawczy:
 curl -X POST http://localhost:8000/warn
 ```
 
+## Optymalizator dźwięku
+
+Projekt zawiera narzędzie do ujednolicenia tonu szczekania psa. Możesz dodać nowe pliki audio do katalogu `sounds/originals` i uruchomić optymalizator, aby dopasować wysokość dźwięku wszystkich nagrań do pliku wzorcowego.
+
+### Użycie
+
+1. Dodaj pliki MP3 z nagraniami szczekania do katalogu `sounds/originals/`
+2. Uruchom optymalizator:
+   ```bash
+   cd app/tools
+   python optimize.py
+   ```
+3. Zoptymalizowane pliki zostaną zapisane w katalogu `sounds/optimized/` z sufiksem `_aligned.wav`
+
+Optymalizator automatycznie:
+- Wykrywa podstawową częstotliwość (F0) każdego nagrania
+- Dopasowuje wysokość dźwięku do pliku wzorcowego (`dog-bark-type-03-293293.mp3`)
+- Normalizuje głośność wszystkich plików
+- Zapisuje wyniki w formacie WAV 16-bit
+
+### Wymagania
+
+Upewnij się, że masz zainstalowane:
+- `rubberband` (via Homebrew: `brew install rubberband`)
+- Wymagane biblioteki Python (patrz `requirements.txt`)
+
 ## 🖥️ Kompatybilność platform
 
 ### Windows

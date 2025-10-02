@@ -13,9 +13,11 @@
 # limitations under the License.
 
 import os, numpy as np, librosa, soundfile as sf
+import pyrubberband as rb
 
 IN_DIR = "../sounds/originals"
 OUT_DIR = "../sounds/optimized"
+
 os.makedirs(OUT_DIR, exist_ok=True)
 
 SR = 22050          # wspólna częstotliwość próbkowania
@@ -27,6 +29,10 @@ def estimate_f0(y, sr):
     return float(np.median(f0)) if f0.size else None
 
 # 1) wczytaj wszystkie pliki mp3
+if not os.path.isdir(IN_DIR):
+    print(f"Katalog wejściowy '{IN_DIR}' nie istnieje. Utwórz go i dodaj pliki .mp3.")
+    exit(1)
+
 files = [f for f in os.listdir(IN_DIR) if f.lower().endswith(".mp3")]
 records = []
 for name in files:
@@ -51,10 +57,9 @@ for name, y, f0 in records:
     else:
         n_steps = 12.0 * np.log2(f0_target / f0)
         try:
-            import pyrubberband as rb
-            y_out = rb.pitch_shift(y, SR, n_steps=n_steps, rbargs={"formant": True})
+            y_out = rb.pitch_shift(y, SR, n_steps=n_steps, formant=True)
         except Exception:
-            y_out = librosa.effects.pitch_shift(y, SR, n_steps=n_steps)
+            y_out = librosa.effects.pitch_shift(y=y, sr=SR, n_steps=n_steps)
 
     # normalizacja głośności
     peak = np.max(np.abs(y_out)) + 1e-9
