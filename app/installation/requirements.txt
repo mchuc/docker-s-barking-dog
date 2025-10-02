@@ -5,3 +5,5 @@ numpy
 librosa
 soundfile
 pyrubberband
+fastapi[standard]
+uvicorn[standard]
