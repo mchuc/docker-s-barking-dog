@@ -126,6 +126,9 @@ if [ "$BUILDX_AVAILABLE" = true ]; then
     echo -e "\n${YELLOW}ℹ️  Windows: Używam Linux obrazu (działa na Windows Docker Desktop)${NC}"
     # Windows containers są skomplikowane, więc używamy Linux obrazu który działa na Windows Docker Desktop
     
+    # iOS ARM64 (kompatybilny z nowymi iPhone/iPad z M-chipami Apple)
+    build_and_export "linux/arm64" "ios-arm64"
+
 else
     echo -e "\n${BLUE}🏗️  Budowanie obrazu dla natywnej platformy...${NC}"
     build_and_export "native" "native"
@@ -266,6 +269,15 @@ docker run -d -p 8000:8000 barking-dog-api:latest-linux-amd64
 ```bash
 # Importuj obraz ARM
 ./import-linux-mac.sh barkingDog-img-raspberry-pi.tar.gz
+
+# Uruchom
+./quick-start.sh
+```
+
+### iOS/Apple Silicon:
+```bash
+# Importuj obraz ARM
+./import-linux-mac.sh barkingDog-img-ios.tar.gz
 
 # Uruchom
 ./quick-start.sh

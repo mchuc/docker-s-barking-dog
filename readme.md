@@ -58,6 +58,7 @@ chmod +x docker-image.sh
 - `barkingDog-img-linux-amd64.tar.gz` - Linux/Windows Docker Desktop
 - `barkingDog-img-raspberry-pi.tar.gz` - Raspberry Pi 4+
 - `barkingDog-img-raspberry-pi-armv7.tar.gz` - Starsze Raspberry Pi
+- `barkingDog-img-ios.tar.gz` - iOS/iPhone/iPad z Docker (Apple Silicon)
 
 ### Importowanie na docelowej maszynie
 
@@ -73,6 +74,10 @@ docker run -d -p 8000:8000 barking-dog-api:latest-linux-amd64
 # Raspberry Pi
 gunzip -c barkingDog-img-raspberry-pi.tar.gz | docker load
 docker run -d -p 8000:8000 barking-dog-api:latest-raspberry-pi
+
+# iOS/Apple Silicon (wymaga Docker Desktop na iOS lub aplikacji Docker)
+gunzip -c barkingDog-img-ios.tar.gz | docker load
+docker run -d -p 8000:8000 barking-dog-api:latest-ios
 ```
 
 ## 🔧 Konfiguracja
