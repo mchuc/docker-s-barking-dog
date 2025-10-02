@@ -33,4 +33,17 @@ curl -s "$API_URL/sounds/database" | jq .
 echo -e "\n🎲 Test losowego dźwięku..."
 curl -s "$API_URL/sounds/random/get" | jq .
 
+# Sprawdź czy serwer działa
+echo "🔌 Sprawdzanie połączenia z serwerem..."
+if ! curl -s --max-time 5 "$API_URL/" > /dev/null; then
+    echo "❌ Serwer nie odpowiada na $API_URL"
+    echo "💡 Upewnij się, że serwer jest uruchomiony:"
+    echo "   - Szybko: python3 run-uvicorn-debug.py"
+    echo "   - Docker: ./run-docker-with-audio.sh"
+    echo "   - Lokalnie: ./run-local.sh"
+    exit 1
+fi
+
+echo "✅ Serwer dostępny"
+
 echo -e "\n✅ Testy zakończone"

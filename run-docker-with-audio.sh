@@ -17,8 +17,17 @@ echo "=================================================="
 if [[ "$OSTYPE" == "darwin"* ]]; then
     PLATFORM="macOS"
     echo -e "${YELLOW}🍎 Wykryto macOS/iOS - Docker Desktop${NC}"
-    AUDIO_FLAGS=""
-    ENV_FLAGS="-e SDL_AUDIODRIVER=dummy -e PYGAME_HIDE_SUPPORT_PROMPT=1"
+
+    # Sprawdź czy to iOS
+    if [[ $(uname -m) == "arm64" ]] && [[ -n "$IPHONE_OS" || -n "$TARGET_OS_IOS" ]]; then
+        echo -e "${YELLOW}📱 iOS wykryty - audio będzie w trybie symulacji${NC}"
+        AUDIO_FLAGS=""
+        ENV_FLAGS="-e SDL_AUDIODRIVER=dummy -e PYGAME_HIDE_SUPPORT_PROMPT=1 -e PLATFORM_HINT=ios"
+    else
+        echo -e "${YELLOW}🖥️  macOS wykryty - używam dummy audio${NC}"
+        AUDIO_FLAGS=""
+        ENV_FLAGS="-e SDL_AUDIODRIVER=dummy -e PYGAME_HIDE_SUPPORT_PROMPT=1"
+    fi
 
 elif [[ "$OSTYPE" == "linux"* ]]; then
     PLATFORM="Linux"
@@ -79,8 +88,12 @@ if [ $? -eq 0 ]; then
     echo ""
 
     if [[ "$PLATFORM" == "macOS" ]]; then
-        echo -e "${YELLOW}ℹ️  Na macOS/iOS audio działa w trybie dummy (symulacja)${NC}"
-        echo -e "${YELLOW}   Aplikacja będzie działać normalnie, ale bez fizycznego dźwięku${NC}"
+        echo -e "${YELLOW}ℹ️  AUDIO NA iOS/macOS DOCKER:${NC}"
+        echo -e "${YELLOW}   ├─ Audio działa w trybie dummy (symulacja)${NC}"
+        echo -e "${YELLOW}   ├─ Jest to ograniczenie Docker Desktop${NC}"
+        echo -e "${YELLOW}   ├─ Aplikacja funkcjonuje normalnie${NC}"
+        echo -e "${YELLOW}   ├─ Timery i logika są zachowane${NC}"
+        echo -e "${YELLOW}   └─ Brak fizycznego dźwięku to normalne zachowanie${NC}"
     fi
 
     # Sprawdź status po 5 sekundach

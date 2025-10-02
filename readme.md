@@ -4,12 +4,114 @@ API do odtwarzania losowych dźwięków szczekania psów z kontrolą współbie�
 
 (C)2025  Marcin Chuć ORCID: 0000-0002-8430-9763
 
+## 🚀 Szybkie uruchomienie
+
+### Opcja 1: Szybkie uruchomienie Python (ZALECANE - pełne audio)
+```bash
+# Jeden plik - uruchom i już! (Windows/Linux/macOS/iOS)
+python3 run-uvicorn-debug.py
+```
+
+**Dlaczego to najlepsze rozwiązanie:**
+- ✅ **Pełne audio na wszystkich platformach** (Windows, Linux, macOS, iOS)
+- ✅ **Brak ograniczeń Docker** - natywny dostęp do systemu audio
+- ✅ **Automatyczne sprawdzanie zależności**
+- ✅ **Hot-reload podczas developmentu**
+- ✅ **Szybkie uruchomienie** - jeden plik, jedna komenda
+- ✅ **Na iOS/macOS: rzeczywisty dźwięk** (w przeciwieństwie do Docker)
+
+### Opcja 2: Środowisko wirtualne (.venv)
+```bash
+# Linux/macOS
+chmod +x run-local.sh
+./run-local.sh
+
+# Windows
+run-local.bat
+```
+
+### Opcja 3: Docker z audio (Linux) / symulacja (iOS/macOS)
+```bash
+# Automatyczna konfiguracja audio dla Twojej platformy
+./run-docker-with-audio.sh
+```
+
+### Opcja 4: Docker Compose (podstawowy)
+```bash
+# Linux/macOS
+./run-docker.sh
+
+# Windows
+run-docker.bat
+```
+
+### Opcja 5: Obrazy gotowe do przenoszenia
+
+```bash
+# Utwórz obrazy dla różnych platform
+./docker-image.sh          # Linux/macOS
+# lub
+.\docker-image.ps1         # Windows PowerShell
+
+# Obrazy zostaną zapisane w katalogu ./docker-images/
+# Pliki: barkingDog-img-PLATFORMA.tar.gz
+```
+
+## 🔊 Audio na różnych platformach
+
+### ⭐ Uruchomienie natywne Python (`run-uvicorn-debug.py`)
+**Windows:** ✅ Pełne audio (winsound + pygame)
+**Linux:** ✅ Pełne audio (pygame + ALSA/PulseAudio)  
+**macOS:** ✅ Pełne audio (afplay + pygame)
+**iOS:** ✅ **Pełne audio natywne** (afplay + pygame)
+
+### 🐳 Docker
+**Windows:** ⚠️ Symulacja audio (dummy driver)
+**Linux:** ✅ Pełne audio (PulseAudio/ALSA w kontenerze)
+**macOS:** ⚠️ Symulacja audio (ograniczenie Docker Desktop)
+**iOS:** ⚠️ Symulacja audio (ograniczenie Docker Desktop)
+
+### 💡 Wniosek dla iOS/macOS
+**Dla pełnego audio na iOS/macOS użyj:**
+```bash
+python3 run-uvicorn-debug.py    # ← PEŁNE AUDIO
+```
+
+**Zamiast Docker, który ma ograniczenia:**
+```bash
+./run-docker-with-audio.sh      # ← tylko symulacja na iOS/macOS
+```
+
 ## 🔊 Audio w Docker
+
+### ⚠️ Ważne - Audio na iOS/macOS Docker
+
+**iOS/macOS + Docker Desktop = Brak fizycznego audio**
+- Jest to normalne zachowanie i ograniczenie platformy
+- Aplikacja działa prawidłowo (API, timery, logika)
+- Audio jest "symulowane" - brak fizycznego dźwięku
+- To NIE jest błąd aplikacji
+
+### Alternatywy dla iOS z prawdziwym audio
+
+```bash
+# Opcja 1: Uruchomienie natywne (zalecane dla iOS)
+./run-local.sh    # Pełne audio przez macOS/iOS
+
+# Opcja 2: Docker z komunikatami informacyjnymi
+./run-docker-with-audio.sh    # Symulacja + wyjaśnienia
+```
 
 ### Problem z kartą dźwiękową
 Docker domyślnie nie ma dostępu do karty dźwiękowej hosta. Oto rozwiązania:
 
-#### Opcja 1: Uruchomienie z audio (zalecane)
+#### Opcja 1: Natywne uruchomienie (najlepsze dla iOS/macOS)
+```bash
+# Pełne audio na wszystkich platformach
+./run-local.sh
+```
+
+#### Opcja 2: Docker z audio (Linux)
 ```bash
 # Linux/macOS z konfiguracją audio
 chmod +x run-docker-with-audio.sh
@@ -19,7 +121,7 @@ chmod +x run-docker-with-audio.sh
 run-docker-with-audio.bat
 ```
 
-#### Opcja 2: Ręczna konfiguracja
+#### Opcja 3: Ręczna konfiguracja
 
 **Linux (PulseAudio):**
 ```bash
@@ -49,110 +151,69 @@ docker run -d -p 8000:8000 `
 
 ### Tryby audio
 
-1. **Pełne audio** (Linux z PulseAudio) - rzeczywisty dźwięk
-2. **ALSA** (Linux bez PulseAudio) - systemowy dźwięk
-3. **Dummy** (macOS/iOS/Windows) - symulacja bez dźwięku
+1. **Pełne audio** (Natywne uruchomienie) - rzeczywisty dźwięk na wszystkich platformach
+2. **Linux Docker** (PulseAudio/ALSA) - rzeczywisty dźwięk w kontenerze
+3. **iOS/macOS Docker** (Dummy) - symulacja bez dźwięku
+4. **Windows Docker** (Dummy) - symulacja bez dźwięku
 
 ### Sprawdzenie audio
 ```bash
-# Test endpoint
+# Test endpoint (działa zawsze)
 curl -X GET http://localhost:8000/warn
 
-# Sprawdź logi audio
-docker logs barking-dog-api | grep -i audio
+# Sprawdź typ audio w logach
+docker logs barking-dog-api | grep -E "(Audio|SYMULACJA|🔇)"
+
+# Dla iOS - oczekuj komunikatów o symulacji
 ```
 
-## 🚀 Szybkie uruchomienie
+## 🔧 Lokalne uruchomienie (bez Docker)
 
-### Opcja 1: Z audio (nowy skrypt)
+### Dlaczego lokalne na iOS/macOS?
+- ✅ **Pełne wsparcie audio** na wszystkich platformach
+- ✅ Brak ograniczeń Docker Desktop
+- ✅ Natywny dostęp do systemu audio
+- ✅ Hot-reload podczas developmentu
+- ✅ Lepsze performance
+
+### Wymagania
+- Python 3.8+
+- pip/pip3
+
+### Automatyczne uruchomienie
 ```bash
-# Automatyczna konfiguracja audio dla Twojej platformy
-./run-docker-with-audio.sh
+# Opcja 1: Szybkie (automatyczne sprawdzenia)
+python3 run-uvicorn-debug.py
+
+# Opcja 2: Z środowiskiem wirtualnym
+./run-local.sh    # Linux/macOS
+run-local.bat     # Windows
 ```
 
-### Opcja 2: Docker Compose (podstawowy)
+Skrypt automatycznie:
+1. Sprawdza wersję Python
+2. Sprawdza wymagane pakiety  
+3. Sprawdza pliki audio
+4. Wykrywa platformę i możliwości audio
+5. Uruchamia serwer uvicorn z hot-reload
+
+### Ręczne uruchomienie
 ```bash
-# Linux/macOS
-./run-docker.sh
+# Utwórz środowisko wirtualne (opcjonalne)
+python3 -m venv .venv
 
-# Windows
-run-docker.bat
-```
+# Aktywuj (Linux/macOS)
+source .venv/bin/activate
 
-### Opcja 3: Obrazy gotowe do przenoszenia
+# Aktywuj (Windows)
+.venv\Scripts\activate
 
-```bash
-# Utwórz obrazy dla różnych platform
-./docker-image.sh          # Linux/macOS
-# lub
-.\docker-image.ps1         # Windows PowerShell
+# Instaluj zależności
+pip install -r app/installation/requirements.txt
 
-# Obrazy zostaną zapisane w katalogu ./docker-images/
-# Pliki: barkingDog-img-PLATFORMA.tar.gz
-```
-
-### Opcja 4: Manualnie
-
-```bash
-# Zbuduj obraz
-docker-compose build
-
-# Uruchom
-docker-compose up -d
-
-# Sprawdź logi
-docker-compose logs -f
-```
-
-## � Przenoszenie na inne maszyny
-
-### Tworzenie przenośnych obrazów
-
-```bash
-# Linux/macOS
-chmod +x docker-image.sh
-./docker-image.sh
-
-# Windows PowerShell  
-.\docker-image.ps1
-```
-
-**Utworzone pliki:**
-- `barkingDog-img-linux-amd64.tar.gz` - Linux/Windows Docker Desktop
-- `barkingDog-img-raspberry-pi.tar.gz` - Raspberry Pi 4+
-- `barkingDog-img-raspberry-pi-armv7.tar.gz` - Starsze Raspberry Pi
-- `barkingDog-img-ios.tar.gz` - iOS/iPhone/iPad z Docker (Apple Silicon)
-
-### Importowanie na docelowej maszynie
-
-```bash
-# Linux/macOS
-gunzip -c barkingDog-img-linux-amd64.tar.gz | docker load
-docker run -d -p 8000:8000 barking-dog-api:latest-linux-amd64
-
-# Windows (wymaga 7-zip)
-7z x barkingDog-img-linux-amd64.tar.gz -so | docker load
-docker run -d -p 8000:8000 barking-dog-api:latest-linux-amd64
-
-# Raspberry Pi
-gunzip -c barkingDog-img-raspberry-pi.tar.gz | docker load
-docker run -d -p 8000:8000 barking-dog-api:latest-raspberry-pi
-
-# iOS/Apple Silicon (wymaga Docker Desktop na iOS lub aplikacji Docker)
-gunzip -c barkingDog-img-ios.tar.gz | docker load
-docker run -d -p 8000:8000 barking-dog-api:latest-ios
-```
-
-## 🔧 Konfiguracja
-
-### 🔊 `/warn` (GET)
-Główny endpoint ostrzegawczy:
-- **Pierwsze wywołanie**: Losuje i odtwarza dźwięk → `status: "PLAYING"`
-- **Podczas odtwarzania**: Zwraca `status: "BUSY"`
-- **Po zakończeniu**: Ponownie dostępny do losowania
-
-```bash
-curl -X GET http://localhost:8000/warn
+# Uruchom serwer
+cd app
+uvicorn start:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ## Optymalizator dźwięku
