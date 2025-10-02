@@ -1,0 +1,46 @@
+# Copyright 2025 Marcin Chuć ORCID: 0000-0002-8430-9763
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+version: '3.8'
+
+services:
+  barking-dog:
+    build: .
+    container_name: barking-dog-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Montuj katalog z dźwiękami (opcjonalne)
+      - ./app/sounds:/app/app/sounds
+      # Montuj konfigurację audio dla Dockera
+      - /etc/pulse:/etc/pulse:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - PULSE_RUNTIME_PATH=/var/run/pulse
+      - PULSE_RUNTIME_PATH=/run/user/1000/pulse
+    # Dla audio w Docker (opcjonalne, zależy od hosta)
+    devices:
+      - /dev/snd:/dev/snd
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  default:
+    name: barking-dog-network

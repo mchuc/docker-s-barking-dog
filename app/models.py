@@ -1,3 +1,17 @@
+# Copyright 2025 Marcin Chuć ORCID: 0000-0002-8430-9763
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 from enum import Enum
@@ -225,3 +239,66 @@ class RandomSoundErrorResponse(BaseModel):
     error: str = Field(..., description="Opis błędu")
     total_files: int = Field(..., description="Łączna liczba plików w bazie")
     valid_files: int = Field(..., description="Liczba plików bez błędów")
+
+class WarnResponse(BaseModel):
+    """Model odpowiedzi API dla endpointu /warn"""
+    status: str = Field(..., description="Status operacji: PLAYING lub BUSY")
+    filename: Optional[str] = Field(None, description="Nazwa odtwarzanego pliku")
+    info: Optional[SoundInfo] = Field(None, description="Informacje o odtwarzanym pliku")
+    message: str = Field(..., description="Opis operacji")
+    estimated_end_time: Optional[float] = Field(None, description="Przewidywany czas zakończenia odtwarzania (timestamp)")
+
+class WarnErrorResponse(BaseModel):
+    """Model odpowiedzi błędu dla endpointu /warn"""
+    status: str = Field(..., description="Status błędu")
+    error: str = Field(..., description="Opis błędu")
+    total_files: int = Field(..., description="Łączna liczba plików w bazie")
+    valid_files: int = Field(..., description="Liczba plików bez błędów")
+
+class PlaybackState(BaseModel):
+    """Model stanu odtwarzania audio"""
+    is_playing: bool = Field(default=False, description="Czy aktualnie odtwarzany jest dźwięk")
+    filename: Optional[str] = Field(default=None, description="Nazwa odtwarzanego pliku")
+    start_time: Optional[float] = Field(default=None, description="Czas rozpoczęcia odtwarzania (timestamp)")
+    duration: Optional[float] = Field(default=None, description="Długość pliku w sekundach")
+    end_time: Optional[float] = Field(default=None, description="Przewidywany czas zakończenia (timestamp)")
+    
+    def start_playback(self, filename: str, duration: float) -> None:
+        """Rozpocznij odtwarzanie nowego pliku"""
+        import time
+        self.is_playing = True
+        self.filename = filename
+        self.start_time = time.time()
+        self.duration = duration
+        self.end_time = time.time() + duration
+    
+    def stop_playback(self) -> None:
+        """Zatrzymaj odtwarzanie i wyczyść stan"""
+        self.is_playing = False
+        self.filename = None
+        self.start_time = None
+        self.duration = None
+        self.end_time = None
+    
+    def is_currently_playing(self) -> bool:
+        """Sprawdź czy aktualnie odtwarzany jest dźwięk (uwzględniając czas)"""
+        if not self.is_playing:
+            return False
+        
+        # Sprawdź czy czas odtwarzania już minął
+        import time
+        if self.end_time and time.time() > self.end_time:
+            # Czas minął - automatycznie wyczyść stan
+            self.stop_playback()
+            return False
+        
+        return True
+    
+    def get_remaining_time(self) -> Optional[float]:
+        """Zwraca pozostały czas odtwarzania w sekundach"""
+        if not self.is_currently_playing() or not self.end_time:
+            return None
+        
+        import time
+        remaining = self.end_time - time.time()
+        return max(0, remaining)

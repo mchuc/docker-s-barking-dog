@@ -1,9 +1,26 @@
+# Copyright 2025 Marcin Chuć ORCID: 0000-0002-8430-9763
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from fastapi import FastAPI
 import os
 import librosa
 from pathlib import Path
 from typing import Dict, List, Any, Union
 from itertools import chain
+import time
+import threading
+import asyncio
 
 # Import modeli Pydantic
 from .models import (
@@ -16,14 +33,44 @@ from .models import (
     RefreshResponse,
     ErrorResponse,
     RandomSoundResponse,
-    RandomSoundErrorResponse
+    RandomSoundErrorResponse,
+    WarnResponse,
+    WarnErrorResponse,
+    PlaybackState
 )
+
+# Windows audio support
+try:
+    import winsound
+    WINSOUND_AVAILABLE = True
+except ImportError:
+    WINSOUND_AVAILABLE = False
+
+# Cross-platform audio support
+try:
+    import pygame
+    PYGAME_AVAILABLE = True
+except ImportError:
+    PYGAME_AVAILABLE = False
+
+try:
+    import subprocess
+    import sys
+    SUBPROCESS_AVAILABLE = True
+except ImportError:
+    SUBPROCESS_AVAILABLE = False
+
+# Detect audio capabilities
+AUDIO_AVAILABLE = WINSOUND_AVAILABLE or PYGAME_AVAILABLE or SUBPROCESS_AVAILABLE
 
 # Ścieżka do katalogu z dźwiękami
 SOUNDS_DIR = Path(__file__).parent / "sounds" / "optimized"
 
 # Globalna baza danych dźwięków (obiekt Pydantic)
 sounds_database = SoundsDatabase()
+
+# Globalny stan odtwarzania audio (obiekt Pydantic)
+playback_state = PlaybackState()
 
 def create_sounds_table():
     """
@@ -121,6 +168,94 @@ def create_sounds_table():
     
     return sounds_database
 
+def play_audio_file(file_path: str, duration: float):
+    """
+    Odtwarza plik audio w tle używając dostępnego systemu audio.
+    Kompatybilny z Windows, Linux, macOS i Docker.
+    Aktualizuje globalny stan odtwarzania (Pydantic model).
+    """
+    global playback_state
+    
+    try:
+        # Ustaw stan odtwarzania używając metody Pydantic
+        playback_state.start_playback(Path(file_path).name, duration)
+        
+        print(f"Rozpoczynam odtwarzanie: {playback_state.filename} (długość: {duration:.2f}s)")
+        
+        # Wybór metody odtwarzania w zależności od dostępności
+        audio_played = False
+        
+        # Próba 1: Windows winsound (najlepsze dla Windows)
+        if WINSOUND_AVAILABLE and not audio_played:
+            try:
+                winsound.PlaySound(str(file_path), winsound.SND_FILENAME | winsound.SND_ASYNC)
+                audio_played = True
+                print("Audio: używam winsound (Windows)")
+            except Exception as e:
+                print(f"winsound nie zadziałał: {e}")
+        
+        # Próba 2: pygame (multiplatformowy)
+        if PYGAME_AVAILABLE and not audio_played:
+            try:
+                pygame.mixer.init()
+                pygame.mixer.music.load(str(file_path))
+                pygame.mixer.music.play()
+                audio_played = True
+                print("Audio: używam pygame (multiplatformowy)")
+            except Exception as e:
+                print(f"pygame nie zadziałał: {e}")
+        
+        # Próba 3: systemowe odtwarzacze (fallback)
+        if SUBPROCESS_AVAILABLE and not audio_played:
+            try:
+                if sys.platform.startswith('win'):
+                    subprocess.run(['start', '', str(file_path)], shell=True, check=False)
+                elif sys.platform.startswith('darwin'):
+                    subprocess.run(['afplay', str(file_path)], check=False)
+                elif sys.platform.startswith('linux'):
+                    # Próbuj różne odtwarzacze Linux
+                    for player in ['aplay', 'paplay', 'mpg123', 'ffplay']:
+                        try:
+                            subprocess.run([player, str(file_path)], check=False, timeout=1)
+                            audio_played = True
+                            print(f"Audio: używam {player} (Linux)")
+                            break
+                        except (subprocess.TimeoutExpired, FileNotFoundError):
+                            continue
+                else:
+                    print("Audio: nieznany system operacyjny")
+            except Exception as e:
+                print(f"systemowy odtwarzacz nie zadziałał: {e}")
+        
+        # Fallback: tylko symulacja
+        if not audio_played:
+            print("Audio: brak dostępnych odtwarzaczy - tylko symulacja")
+        
+        # Czekaj przez czas trwania pliku
+        time.sleep(duration)
+        
+    except Exception as e:
+        print(f"Błąd podczas odtwarzania pliku {file_path}: {e}")
+    finally:
+        # Wyczyść stan odtwarzania używając metody Pydantic
+        playback_state.stop_playback()
+        print(f"Zakończono odtwarzanie")
+
+def start_audio_playback(file_path: str, duration: float):
+    """
+    Uruchamia odtwarzanie audio w osobnym wątku.
+    """
+    thread = threading.Thread(target=play_audio_file, args=(file_path, duration), daemon=True)
+    thread.start()
+
+def is_audio_playing() -> bool:
+    """
+    Sprawdza czy aktualnie odtwarzany jest dźwięk.
+    Używa metody Pydantic model do sprawdzenia stanu.
+    """
+    global playback_state
+    return playback_state.is_currently_playing()
+
 app = FastAPI(title="Barking's Dog API", version="1.0.0")
 
 # Tworzenie globalnej bazy danych dźwięków przy starcie
@@ -213,3 +348,47 @@ async def reset_random_history():
         "message": "Historia losowania zostala zresetowana",
         "last_random_sound": None
     }
+
+@app.get("/warn")
+async def warn_endpoint():
+    """
+    Endpoint ostrzegawczy - losuje i odtwarza dźwięk jeśli żaden nie jest aktualnie odtwarzany.
+    Jeśli dźwięk jest już odtwarzany, zwraca status BUSY.
+    """
+    # Sprawdź czy aktualnie odtwarzamy dźwięk używając Pydantic model
+    if is_audio_playing():
+        return WarnResponse(
+            status="BUSY",
+            filename=playback_state.filename,
+            info=None,
+            message=f"Aktualnie odtwarzany jest plik: {playback_state.filename}. Spróbuj ponownie za chwilę.",
+            estimated_end_time=playback_state.end_time
+        )
+    
+    # Jeśli nic nie odtwarzamy, wylosuj nowy dźwięk
+    random_result = sounds_database.get_random_sound()
+    
+    if not random_result:
+        # Brak dostępnych dźwięków
+        stats = sounds_database.get_stats()
+        return WarnErrorResponse(
+            status="ERROR",
+            error="Brak dostępnych dźwięków do odtworzenia",
+            total_files=stats["total_files"],
+            valid_files=stats["valid_sounds_count"]
+        )
+    
+    filename, sound_info = random_result
+    
+    # Uruchom rzeczywiste odtwarzanie w tle
+    start_audio_playback(sound_info.path, sound_info.length)
+    
+    print(f"Rozpoczynam odtwarzanie: {filename} (długość: {sound_info.length:.2f}s)")
+    
+    return WarnResponse(
+        status="PLAYING",
+        filename=filename,
+        info=sound_info,
+        message=f"Rozpoczynam odtwarzanie pliku: {filename} (długość: {sound_info.length:.2f}s)",
+        estimated_end_time=time.time() + sound_info.length
+    )
