@@ -22,12 +22,21 @@ python3 run-uvicorn-debug.py
 
 ### Opcja 2: Środowisko wirtualne (.venv)
 ```bash
-# Linux/macOS
-chmod +x run-local.sh
-./run-local.sh
+# Utwórz i aktywuj środowisko
+python3 -m venv .venv
 
-# Windows
-run-local.bat
+# Linux/macOS
+source .venv/bin/activate
+# Windows (PowerShell)
+.\.venv\Scripts\Activate.ps1
+# Windows (CMD)
+.\.venv\Scripts\activate.bat
+
+# Zainstaluj zależności
+pip install -r app/installation/requirements.txt
+
+# Uruchom serwer (z hot-reload)
+uvicorn app.start:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### Opcja 3: Docker z audio (Linux) / symulacja (iOS/macOS)
@@ -38,11 +47,8 @@ run-local.bat
 
 ### Opcja 4: Docker Compose (podstawowy)
 ```bash
-# Linux/macOS
-./run-docker.sh
-
-# Windows
-run-docker.bat
+# Linux/macOS/Windows (Docker Desktop)
+docker compose up --build
 ```
 
 ### Opcja 5: Obrazy gotowe do przenoszenia
@@ -96,10 +102,10 @@ python3 run-uvicorn-debug.py    # ← PEŁNE AUDIO
 
 ```bash
 # Opcja 1: Uruchomienie natywne (zalecane dla iOS)
-./run-local.sh    # Pełne audio przez macOS/iOS
+python3 run-uvicorn-debug.py    # Pełne audio przez macOS/iOS
 
-# Opcja 2: Docker z komunikatami informacyjnymi
-./run-docker-with-audio.sh    # Symulacja + wyjaśnienia
+# Opcja 2: Docker z komunikatami informacyjnymi (symulacja)
+./run-docker-with-audio.sh
 ```
 
 ### Problem z kartą dźwiękową
@@ -108,7 +114,7 @@ Docker domyślnie nie ma dostępu do karty dźwiękowej hosta. Oto rozwiązania:
 #### Opcja 1: Natywne uruchomienie (najlepsze dla iOS/macOS)
 ```bash
 # Pełne audio na wszystkich platformach
-./run-local.sh
+python3 run-uvicorn-debug.py
 ```
 
 #### Opcja 2: Docker z audio (Linux)
@@ -189,17 +195,12 @@ docker logs barking-dog-api | grep -E "(Audio|SYMULACJA|🔇)"
 # Opcja 1: Szybkie (automatyczne sprawdzenia)
 python3 run-uvicorn-debug.py
 
-# Opcja 2: Z środowiskiem wirtualnym
-./run-local.sh    # Linux/macOS
-run-local.bat     # Windows
+# Opcja 2: Z środowiskiem wirtualnym (.venv)
+python3 -m venv .venv
+source .venv/bin/activate    # Windows: .\.venv\Scripts\Activate.ps1
+pip install -r app/installation/requirements.txt
+uvicorn app.start:app --host 0.0.0.0 --port 8000 --reload
 ```
-
-Skrypt automatycznie:
-1. Sprawdza wersję Python
-2. Sprawdza wymagane pakiety  
-3. Sprawdza pliki audio
-4. Wykrywa platformę i możliwości audio
-5. Uruchamia serwer uvicorn z hot-reload
 
 ### Ręczne uruchomienie
 ```bash

@@ -40,7 +40,10 @@ if ! curl -s --max-time 5 "$API_URL/" > /dev/null; then
     echo "💡 Upewnij się, że serwer jest uruchomiony:"
     echo "   - Szybko: python3 run-uvicorn-debug.py"
     echo "   - Docker: ./run-docker-with-audio.sh"
-    echo "   - Lokalnie: ./run-local.sh"
+    echo "   - Lokalnie (.venv):"
+    echo "       python3 -m venv .venv && source .venv/bin/activate && \\"
+    echo "       pip install -r app/installation/requirements.txt && \\"
+    echo "       uvicorn app.start:app --host 0.0.0.0 --port 8000 --reload"
     exit 1
 fi
 
