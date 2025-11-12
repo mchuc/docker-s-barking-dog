@@ -14,13 +14,22 @@
 
 from fastapi import FastAPI
 import os
-import librosa
+import wave
+import struct
 from pathlib import Path
 from typing import Dict, List, Any, Union
 from itertools import chain
 import time
 import threading
 import asyncio
+
+# Alternatywa dla librosa - używamy soundfile (dostępny jako python3-soundfile w Debianie)
+try:
+    import soundfile as sf
+    SOUNDFILE_AVAILABLE = True
+except ImportError:
+    SOUNDFILE_AVAILABLE = False
+    print("Uwaga: soundfile nie jest dostępny - instaluj: sudo apt-get install python3-soundfile")
 
 # Import modeli Pydantic
 from .models import (
@@ -115,11 +124,27 @@ def create_sounds_table():
         filename = audio_file.name  # Klucz - nazwa pliku z rozszerzeniem
         
         try:
-            # Wczytaj plik audio i pobierz długość
-            y, sr = librosa.load(str(audio_file), sr=None)
-            duration = len(y) / sr
             file_size_bytes = audio_file.stat().st_size
             file_type = AudioType.WAV if audio_file.suffix.upper() == ".WAV" else AudioType.MP3
+            
+            # Pobierz długość i sample rate w zależności od typu pliku
+            if file_type == AudioType.WAV:
+                # Użyj wbudowanej biblioteki wave dla plików WAV
+                with wave.open(str(audio_file), 'rb') as wav_file:
+                    frames = wav_file.getnframes()
+                    sr = wav_file.getframerate()
+                    duration = frames / float(sr)
+            else:
+                # Dla MP3 użyj soundfile (jeśli dostępny)
+                if SOUNDFILE_AVAILABLE:
+                    info = sf.info(str(audio_file))
+                    duration = info.duration
+                    sr = info.samplerate
+                else:
+                    # Fallback - oszacuj na podstawie rozmiaru pliku (128kbps średnio)
+                    duration = (file_size_bytes * 8) / (128000)  # przybliżone
+                    sr = 44100  # standardowe dla MP3
+                    print(f"  Uwaga: używam oszacowania dla {filename} (brak soundfile)")
             
             # Utwórz obiekt SoundInfo (Pydantic model)
             sound_info = SoundInfo(

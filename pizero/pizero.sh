@@ -17,7 +17,19 @@ sudo apt-get install -y \
     bluetooth \
     pi-bluetooth \
     rubberband-cli \
-    librubberband-dev
+    librubberband-dev \
+    python3-numpy \
+    python3-scipy \
+    python3-audioread \
+    python3-soundfile \
+    python3-fastapi \
+    python3-uvicorn \
+    python3-pygame \
+    python3-requests \
+    librubberband-dev \
+    ffmpeg
+    #pip install --upgrade pip setuptools wheel
+# pip install --no-build-isolation --prefer-binary librosa pyrubberband
 
 # Instalacja odtwarzaczy mediów
 echo "Instalowanie odtwarzaczy mediów..."

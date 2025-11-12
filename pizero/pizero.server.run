@@ -1,5 +1,5 @@
-#zapisz w /usr/local/bin/pizero.server.run
-# 
 #!/bin/bash
-source /home/app/venv/bin/activate
+#zapisz w /usr/local/bin/pizero.server.run
+# chmod a+x usr/local/bin/pizero.server.run
+# app skopiuj do /usr/local/app
 python -m uvicorn app.start:app --host 0.0.0.0 --port 8000

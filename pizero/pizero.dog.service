@@ -3,11 +3,12 @@
 #sudo systemctl enable dog.service
 #sudo systemctl start dog.service
 [Unit]
-Description=Auto reconnect Bluetooth speaker
-After=bluetooth.service
+Description=Starts Dog Service
+After=network.target sound.target pizero.pulseaudio.service
 StartLimitIntervalSec=0
 
 [Service]
+WorkingDirectory=/usr/local/bin/
 ExecStart=/usr/local/bin/pizero.server.run
 Restart=always
 RestartSec=10

@@ -16,10 +16,37 @@
 #sudo apt install rubberband-cli librubberband-dev   # Ubuntu/Debian
 #https://breakfastquay.com/rubberband/ for windows
 numpy
-librosa
 soundfile
 pyrubberband
 fastapi[standard]
 uvicorn[standard]
 pygame
 requests
+
+
+# === INSTALACJA DLA RASPBERRY PI ZERO (Debian) ===
+# librosa USUNIĘTA - zbyt ciężka do kompilacji na RPi Zero
+# Zamiast tego używamy wave (wbudowany w Python) + soundfile
+#
+# Zainstaluj te pakiety PRZED pip install:
+#sudo apt-get install -y \
+#     alsa-utils \
+#     pulseaudio \
+#     pulseaudio-module-bluetooth \
+#     pulseaudio-utils \
+#     bluez \
+#     bluez-tools \
+#     bluetooth \
+#     pi-bluetooth \
+#     rubberband-cli \
+#     librubberband-dev \
+#     python3-numpy \
+#     python3-soundfile \
+#     python3-fastapi \
+#     python3-uvicorn \
+#     python3-pygame \
+#     python3-requests \
+#     libsndfile1
+
+# Po aktywacji środowiska virtualnego na RPi Zero:
+# pip install --no-build-isolation --prefer-binary fastapi uvicorn pygame requests soundfile pyrubberband
