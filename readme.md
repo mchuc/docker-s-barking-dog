@@ -2,17 +2,19 @@
 
 API do odtwarzania losowych dźwięków szczekania psów z kontrolą współbieżności. Kompatybilny z Windows, Linux, macOS i Docker.
 
-(C)2025  Marcin Chuć ORCID: 0000-0002-8430-9763
+(C)2025 Marcin Chuć ORCID: 0000-0002-8430-9763
 
 ## 🚀 Szybkie uruchomienie
 
 ### Opcja 1: Szybkie uruchomienie Python (ZALECANE - pełne audio)
+
 ```bash
 # Jeden plik - uruchom i już! (Windows/Linux/macOS/iOS)
 python3 run-uvicorn-debug.py
 ```
 
 **Dlaczego to najlepsze rozwiązanie:**
+
 - ✅ **Pełne audio na wszystkich platformach** (Windows, Linux, macOS, iOS)
 - ✅ **Brak ograniczeń Docker** - natywny dostęp do systemu audio
 - ✅ **Automatyczne sprawdzanie zależności**
@@ -21,6 +23,7 @@ python3 run-uvicorn-debug.py
 - ✅ **Na iOS/macOS: rzeczywisty dźwięk** (w przeciwieństwie do Docker)
 
 ### Opcja 2: Środowisko wirtualne (.venv)
+
 ```bash
 # Utwórz i aktywuj środowisko
 python3 -m venv .venv
@@ -40,12 +43,14 @@ uvicorn app.start:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### Opcja 3: Docker z audio (Linux) / symulacja (iOS/macOS)
+
 ```bash
 # Automatyczna konfiguracja audio dla Twojej platformy
 ./run-docker-with-audio.sh
 ```
 
 ### Opcja 4: Docker Compose (podstawowy)
+
 ```bash
 # Linux/macOS/Windows (Docker Desktop)
 docker compose up --build
@@ -66,24 +71,29 @@ docker compose up --build
 ## 🔊 Audio na różnych platformach
 
 ### ⭐ Uruchomienie natywne Python (`run-uvicorn-debug.py`)
+
 **Windows:** ✅ Pełne audio (winsound + pygame)
 **Linux:** ✅ Pełne audio (pygame + ALSA/PulseAudio)  
 **macOS:** ✅ Pełne audio (afplay + pygame)
 **iOS:** ✅ **Pełne audio natywne** (afplay + pygame)
 
 ### 🐳 Docker
+
 **Windows:** ⚠️ Symulacja audio (dummy driver)
 **Linux:** ✅ Pełne audio (PulseAudio/ALSA w kontenerze)
 **macOS:** ⚠️ Symulacja audio (ograniczenie Docker Desktop)
 **iOS:** ⚠️ Symulacja audio (ograniczenie Docker Desktop)
 
 ### 💡 Wniosek dla iOS/macOS
+
 **Dla pełnego audio na iOS/macOS użyj:**
+
 ```bash
 python3 run-uvicorn-debug.py    # ← PEŁNE AUDIO
 ```
 
 **Zamiast Docker, który ma ograniczenia:**
+
 ```bash
 ./run-docker-with-audio.sh      # ← tylko symulacja na iOS/macOS
 ```
@@ -93,6 +103,7 @@ python3 run-uvicorn-debug.py    # ← PEŁNE AUDIO
 ### ⚠️ Ważne - Audio na iOS/macOS Docker
 
 **iOS/macOS + Docker Desktop = Brak fizycznego audio**
+
 - Jest to normalne zachowanie i ograniczenie platformy
 - Aplikacja działa prawidłowo (API, timery, logika)
 - Audio jest "symulowane" - brak fizycznego dźwięku
@@ -109,15 +120,18 @@ python3 run-uvicorn-debug.py    # Pełne audio przez macOS/iOS
 ```
 
 ### Problem z kartą dźwiękową
+
 Docker domyślnie nie ma dostępu do karty dźwiękowej hosta. Oto rozwiązania:
 
 #### Opcja 1: Natywne uruchomienie (najlepsze dla iOS/macOS)
+
 ```bash
 # Pełne audio na wszystkich platformach
 python3 run-uvicorn-debug.py
 ```
 
 #### Opcja 2: Docker z audio (Linux)
+
 ```bash
 # Linux/macOS z konfiguracją audio
 chmod +x run-docker-with-audio.sh
@@ -130,6 +144,7 @@ run-docker-with-audio.bat
 #### Opcja 3: Ręczna konfiguracja
 
 **Linux (PulseAudio):**
+
 ```bash
 docker run -d -p 8000:8000 \
   -v /run/user/$(id -u)/pulse:/run/user/1000/pulse:ro \
@@ -140,6 +155,7 @@ docker run -d -p 8000:8000 \
 ```
 
 **macOS/iOS (Docker Desktop - dummy audio):**
+
 ```bash
 docker run -d -p 8000:8000 \
   -e SDL_AUDIODRIVER=dummy \
@@ -148,6 +164,7 @@ docker run -d -p 8000:8000 \
 ```
 
 **Windows (Docker Desktop):**
+
 ```powershell
 docker run -d -p 8000:8000 `
   -e SDL_AUDIODRIVER=dummy `
@@ -163,6 +180,7 @@ docker run -d -p 8000:8000 `
 4. **Windows Docker** (Dummy) - symulacja bez dźwięku
 
 ### Sprawdzenie audio
+
 ```bash
 # Test endpoint (działa zawsze)
 curl -X GET http://localhost:8000/warn
@@ -180,6 +198,7 @@ docker logs barking-dog-api | grep -E "(Audio|SYMULACJA|🔇)"
 ## 🔧 Lokalne uruchomienie (bez Docker)
 
 ### Dlaczego lokalne na iOS/macOS?
+
 - ✅ **Pełne wsparcie audio** na wszystkich platformach
 - ✅ Brak ograniczeń Docker Desktop
 - ✅ Natywny dostęp do systemu audio
@@ -187,10 +206,12 @@ docker logs barking-dog-api | grep -E "(Audio|SYMULACJA|🔇)"
 - ✅ Lepsze performance
 
 ### Wymagania
+
 - Python 3.8+
 - pip/pip3
 
 ### Automatyczne uruchomienie
+
 ```bash
 # Opcja 1: Szybkie (automatyczne sprawdzenia)
 python3 run-uvicorn-debug.py
@@ -203,6 +224,7 @@ uvicorn app.start:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### Ręczne uruchomienie
+
 ```bash
 # Utwórz środowisko wirtualne (opcjonalne)
 python3 -m venv .venv
@@ -236,6 +258,7 @@ Projekt zawiera narzędzie do ujednolicenia tonu szczekania psa. Możesz dodać 
 3. Zoptymalizowane pliki zostaną zapisane w katalogu `sounds/optimized/` z sufiksem `_aligned.wav`
 
 Optymalizator automatycznie:
+
 - Wykrywa podstawową częstotliwość (F0) każdego nagrania
 - Dopasowuje wysokość dźwięku do pliku wzorcowego (`dog-bark-type-03-293293.mp3`)
 - Normalizuje głośność wszystkich plików
@@ -244,27 +267,32 @@ Optymalizator automatycznie:
 ### Wymagania
 
 Upewnij się, że masz zainstalowane:
+
 - `rubberband` (via Homebrew: `brew install rubberband`)
 - Wymagane biblioteki Python (patrz `requirements.txt`)
 
 ## 🖥️ Kompatybilność platform
 
 ### Windows
+
 - ✅ winsound (natywny)
-- ✅ pygame (fallback)  
+- ✅ pygame (fallback)
 - ✅ systemowy odtwarzacz
 
-### Linux  
+### Linux
+
 - ✅ pygame (główny)
 - ✅ alsa (aplay)
 - ✅ pulseaudio (paplay)
 - ✅ mpg123, ffplay
 
 ### macOS
+
 - ✅ pygame (główny)
 - ✅ afplay (systemowy)
 
 ### Docker
+
 - ✅ pygame (zoptymalizowany)
 - ✅ Linux audio stack
 - ✅ Bezgłowy tryb (headless)
@@ -302,6 +330,7 @@ docker-s-barking-dog/
 ## 🚀 Scenariusze użycia
 
 ### Szybkie wdrożenie na nowej maszynie
+
 ```bash
 # Sklonuj repozytorium
 git clone https://github.com/mchuc/docker-s-barking-dog.git
@@ -313,6 +342,7 @@ chmod +x quick-deploy.sh
 ```
 
 ### Przenoszenie bez dostępu do internetu
+
 ```bash
 # Na maszynie źródłowej (z internetem)
 ./docker-image.sh
@@ -354,6 +384,17 @@ python3 run-uvicorn-debug.py
 ```
 
 Uwagi:
+
 - Na macOS natywnie pygame użyje CoreAudio – nie ustawiaj SDL_AUDIODRIVER.
 - Tryb „dummy” powinien włączać się tylko w kontenerze (iOS/Docker) lub jako awaryjny fallback, gdy inicjalizacja audio się nie powiedzie.
 - Jeśli nadal brak dźwięku, upewnij się, że system nie jest wyciszony i że plik audio odtwarza się przez `afplay`.
+
+#projekt PiZero:
+w raspberry pi zero/ 2w postępuj wg plików
+
+> uruchom pizero.sh
+> połącz się z głośnikiem - zobacz pizero.connect.sh
+> przekopiuj serisy : .service i je odblokuj
+> przekopiuj pizero.bluetooth.sh
+
+restart maliny

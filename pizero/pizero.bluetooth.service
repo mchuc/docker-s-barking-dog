@@ -1,0 +1,19 @@
+#sudo nano /etc/systemd/system/bt-autoconnect.service
+#sudo systemctl daemon-reload
+#sudo systemctl enable bt-autoconnect.service
+#sudo systemctl start bt-autoconnect.service
+[Unit]
+Description=Auto reconnect Bluetooth speaker
+After=bluetooth.service
+StartLimitIntervalSec=0
+
+[Service]
+ExecStart=/usr/local/bin/pizero.bluetooth.sh
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/bt-autoconnect.log
+StandardError=append:/var/log/bt-autoconnect.log
+
+[Install]
+#WantedBy=multi-user.target
+WantedBy=bluetooth.target
