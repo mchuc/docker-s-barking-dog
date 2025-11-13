@@ -22,6 +22,7 @@ from itertools import chain
 import time
 import threading
 import asyncio
+from time import sleep
 
 # Alternatywa dla librosa - używamy soundfile (dostępny jako python3-soundfile w Debianie)
 try:
@@ -349,10 +350,35 @@ def is_audio_playing() -> bool:
     global playback_state
     return playback_state.is_currently_playing()
 
+def system_start():
+    """
+    Funkcja wywoływana przy starcie aplikacji FastAPI
+    """
+    sound = Path(__file__).parent / "sounds" / "helpers" / "start.wav"
+    if sound.exists():
+        try:
+            # Oblicz długość pliku WAV
+            with wave.open(str(sound), 'rb') as wav_file:
+                frames = wav_file.getnframes()
+                sr = wav_file.getframerate()
+                duration = frames / float(sr)
+            
+            print(f"System start: odtwarzam dźwięk startowy (długość: {duration:.2f}s)")
+            # Odtwórz dźwięk używając dostępnej metody
+            start_audio_playback(str(sound), duration)
+            
+        except Exception as e:
+            print(f"Nie udało się odtworzyć dźwięku startowego: {e}")
+    else:
+        print(f"Plik startowy nie istnieje: {sound}")
+
 app = FastAPI(title="Barking's Dog API", version="1.0.0")
 
 # Tworzenie globalnej bazy danych dźwięków przy starcie
 sounds_database = create_sounds_table()
+# Uruchom dźwięk startowy systemu
+sleep(15)
+system_start()
 
 @app.get("/")
 async def read_root():
@@ -485,3 +511,4 @@ async def warn_endpoint():
         message=f"Rozpoczynam odtwarzanie pliku: {filename} (długość: {sound_info.length:.2f}s)",
         estimated_end_time=time.time() + sound_info.length
     )
+

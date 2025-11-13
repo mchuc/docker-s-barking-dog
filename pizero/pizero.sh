@@ -30,7 +30,8 @@ sudo apt-get install -y \
     ffmpeg
     #pip install --upgrade pip setuptools wheel
 # pip install --no-build-isolation --prefer-binary librosa pyrubberband
-
+# pip install "librosa==0.8.1" --no-build-isolation --prefer-binary --break-system-packages
+#pip install pyrubberband --prefer-binary --break-system-packages
 # Instalacja odtwarzaczy mediów
 echo "Instalowanie odtwarzaczy mediów..."
 sudo apt-get install -y \

@@ -1,14 +1,16 @@
 #!/bin/bash
-DEVICE_MAC="00:42:79:FE:FE:XX"   # <- tu wpisz adres MAC swojego głośnika
+#save as sudo nano /usr/local/bin/pizero.bluetooth.sh
 #sudo chmod +x /usr/local/bin/pizero.bluetooth.sh
 #touch /var/log/bt-autoconnect.log
 #chmod 666 /var/log/bt-autoconnect.log
 
 
 
-#wpisz : id -u to da UID twojego uzytkownika
-export PULSE_SERVER=unix:/run/user/1000/pulse/native #1000 to UID twojego użytkownika, na jakim koncie robisz zmiany - pi? imie?
+#####*******************************************
+DEVICE_MAC="00:42:79:FE:FE:XX"   # <- tu wpisz adres MAC swojego głośnika
+#####*******************************************
 
+export PULSE_SERVER=unix:/var/run/pulse/native
 LOGFILE="/var/log/bt-autoconnect.log"
 
 
@@ -18,7 +20,6 @@ echo "$(date): [INFO] Start bt-autoconnect" >> "$LOGFILE"
 
 connect_device() {
     echo "$(date): [INFO] Próba połączenia z $DEVICE_MAC" >> "$LOGFILE"
-
     # Łączenie przez bluetoothctl
     bluetoothctl << EOF
 power on

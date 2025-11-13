@@ -1,0 +1,47 @@
+#####UFFF>..... woking wersion
+#sudo nano /etc/pulse/client.conf
+
+#autospawn = no
+#daemon-binary = /bin/true
+
+#sudo mv /etc/xdg/autostart/pulseaudio.desktop /etc/xdg/autostart/pulseaudio.desktop.disabled
+
+#sudo mkdir -p /var/run/pulse
+#sudo chown pulse:pulse /var/run/pulse
+#sudo chmod 755 /var/run/pulse
+#sudo mkdir -p /var/run/pulse/.config/pulse
+#sudo chown -R pulse:pulse /var/run/pulse/.config
+
+
+# in file: sudo nano /etc/pulse/system.pa
+# load-module module-native-protocol-unix auth-anonymous=1 socket=/var/run/pulse/native#modyfy
+# load-module module-bluetooth-policy #add on the end
+# load-module module-bluetooth-discover #add on the end
+
+
+#this file save as: sudo nano /etc/systemd/system/pizero.pulseaudio.service
+#
+[Unit]
+Description=PulseAudio system-wide daemon
+After=sound.target bluetooth.service
+Requires=bluetooth.service
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/pulseaudio --system --daemonize=no --log-target=journal --disallow-exit --disallow-module-loading=0
+Restart=always
+RestartSec=3
+
+# PulseAudio musi działać jako użytkownik 'root' - przynajmniej na Rpi Zero
+User=root
+Group=root
+RuntimeDirectory=pulse
+RuntimeDirectoryMode=0755
+
+
+[Install]
+WantedBy=multi-user.target
+
+#then:
+#sudo systemctl daemon-reload
+#sudo systemctl enable --now pizero.pulseaudio.service
